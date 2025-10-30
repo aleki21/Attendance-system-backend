@@ -24,6 +24,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+<<<<<<< HEAD
 // =========================
 // CORS CONFIGURATION
 // =========================
@@ -78,6 +79,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+=======
+app.use(cors({
+  origin: 'http://localhost:5173', // Your Vite frontend URL
+  credentials: true
+}));
+app.use(express.json());
+
+>>>>>>> 8a171ee12859883c053bf80139b1627c2984a30d
 // Public routes
 app.use("/auth", authRoutes);
 
@@ -188,7 +197,10 @@ SundayService.startDailyCheck();
 // =========================
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
+<<<<<<< HEAD
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+=======
+>>>>>>> 8a171ee12859883c053bf80139b1627c2984a30d
   console.log(`📊 Available Routes:`);
   console.log(`   🔐 Auth: POST /auth/login, POST /auth/register`);
   console.log(`   👥 Users: GET/POST/PUT /users (Admin only)`);
@@ -198,5 +210,8 @@ app.listen(PORT, () => {
   console.log(`   📈 Admin: GET /admin/stats`);
   console.log(`   👤 Usher: GET /usher/dashboard`);
   console.log(`   🔄 Sunday Service: Auto-creation scheduled (4:00 AM daily)`);
+<<<<<<< HEAD
   console.log(`   ❤️  Health: GET /health`);
+=======
+>>>>>>> 8a171ee12859883c053bf80139b1627c2984a30d
 });

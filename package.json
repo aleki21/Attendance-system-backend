@@ -7,8 +7,12 @@
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
     "build": "tsc",
+<<<<<<< HEAD
     "start": "node dist/index.js",
     "migrate": "node dist/scripts/migrate.js"
+=======
+    "start": "node dist/index.js"
+>>>>>>> 8a171ee12859883c053bf80139b1627c2984a30d
   },
   "keywords": [],
   "author": "",
@@ -37,4 +41,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8a171ee12859883c053bf80139b1627c2984a30d
