@@ -1,0 +1,9 @@
+{
+  "out": "./drizzle",
+  "schema": "./db/schema/index.ts",
+  "breakpoints": true,
+  "driver": "pg",
+  "dbCredentials": {
+    "connectionString": "${process.env.DATABASE_URL}"
+  }
+}
