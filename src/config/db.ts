@@ -2,19 +2,13 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '../db/schema/index.js';
 
-// Simple database configuration
 const connectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
-  console.error('❌ DATABASE_URL is missing');
-  // Don't throw error, just log so we can debug
-}
-
-console.log('🔗 Database config loaded');
+console.log('🔗 Database URL exists:', !!connectionString);
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: connectionString?.includes('railway') ? { rejectUnauthorized: false } : false
+  ssl: { rejectUnauthorized: false } // Required for Railway
 });
 
 export const db = drizzle(pool, { schema });
