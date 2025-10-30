@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 4000;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000', 
-  'https://church-attendance-frontend.vercel.app',
+  'https://repentanceattendance-system-fronten.vercel.app/',
   'https://*.vercel.app'
 ];
 
