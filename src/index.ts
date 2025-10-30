@@ -28,19 +28,17 @@ const PORT = process.env.PORT || 4000;
 // CORS CONFIGURATION
 // =========================
 const allowedOrigins = [
-  'http://localhost:5173', // Vite dev server
-  'http://localhost:3000', // Alternative dev port
-  'https://church-attendance-frontend.vercel.app', // Your future Vercel frontend
-  'https://*.vercel.app' // Any Vercel deployment
+  'http://localhost:5173',
+  'http://localhost:3000', 
+  'https://church-attendance-frontend.vercel.app',
+  'https://*.vercel.app'
 ];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.some(allowedOrigin => {
-      // Handle wildcard domains
       if (allowedOrigin.includes('*')) {
         const domainPattern = new RegExp(allowedOrigin.replace('*', '.*'));
         return domainPattern.test(origin);
@@ -49,7 +47,6 @@ const corsOptions: cors.CorsOptions = {
     })) {
       callback(null, true);
     } else {
-      // Log blocked origins for debugging
       console.log('🚫 CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
@@ -60,10 +57,6 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('/*', cors(corsOptions));
-
 app.use(express.json());
 
 // =========================
