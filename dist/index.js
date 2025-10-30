@@ -19,11 +19,55 @@ import { eq, count } from "drizzle-orm";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
-app.use(cors({
-    origin: 'http://localhost:5173', // Your Vite frontend URL
-    credentials: true
-}));
+// =========================
+// CORS CONFIGURATION
+// =========================
+const allowedOrigins = [
+    'http://localhost:5173', // Vite dev server
+    'http://localhost:3000', // Alternative dev port
+    'https://church-attendance-frontend.vercel.app', // Your future Vercel frontend
+    'https://*.vercel.app' // Any Vercel deployment
+];
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.some(allowedOrigin => {
+            // Handle wildcard domains
+            if (allowedOrigin.includes('*')) {
+                const domainPattern = new RegExp(allowedOrigin.replace('*', '.*'));
+                return domainPattern.test(origin);
+            }
+            return allowedOrigin === origin;
+        })) {
+            callback(null, true);
+        }
+        else {
+            // Log blocked origins for debugging
+            console.log('🚫 CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+app.use(cors(corsOptions));
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 app.use(express.json());
+// =========================
+// HEALTH CHECK ENDPOINT (Required for Railway)
+// =========================
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        message: 'Church Attendance Backend is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 // Public routes
 app.use("/auth", authRoutes);
 // =========================
@@ -117,6 +161,7 @@ SundayService.startDailyCheck();
 // =========================
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
+    console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
     console.log(`📊 Available Routes:`);
     console.log(`   🔐 Auth: POST /auth/login, POST /auth/register`);
     console.log(`   👥 Users: GET/POST/PUT /users (Admin only)`);
@@ -126,4 +171,5 @@ app.listen(PORT, () => {
     console.log(`   📈 Admin: GET /admin/stats`);
     console.log(`   👤 Usher: GET /usher/dashboard`);
     console.log(`   🔄 Sunday Service: Auto-creation scheduled (4:00 AM daily)`);
+    console.log(`   ❤️  Health: GET /health`);
 });
