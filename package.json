@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
     "build": "npx tsc",
-    "start": "node dist/index.js",
-    "migrate": "node dist/scripts/migrate.js"
+    "start": "npm run migrate && node dist/index.js",
+    "migrate": "drizzle-kit push --config drizzle.config.ts",
+    "migrate:old": "node dist/scripts/migrate.js"
   },
   "keywords": [],
   "author": "",
