@@ -136,7 +136,26 @@ app.get("/admin-only", authMiddleware, adminMiddleware, (req, res) => {
 app.get("/usher-only", authMiddleware, usherMiddleware, (req, res) => {
     res.json({ message: "✅ Usher access granted", user: req.user });
 });
-// Test DB connection
+app.get("/debug-db", async (req, res) => {
+    try {
+        const result = await db.execute("SELECT NOW() as time");
+        res.json({
+            status: "✅ Database connected",
+            time: result.rows[0].time,
+            hasDbUrl: !!process.env.DATABASE_URL,
+            dbUrlPreview: process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.slice(-20) : 'NOT SET'
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            status: "❌ Database error",
+            error: error.message,
+            hasDbUrl: !!process.env.DATABASE_URL,
+            dbUrlPreview: process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.slice(-20) : 'NOT SET'
+        });
+    }
+});
+// Your existing db-test route (keep this)
 app.get("/db-test", async (req, res) => {
     try {
         const result = await db.execute("SELECT NOW()");

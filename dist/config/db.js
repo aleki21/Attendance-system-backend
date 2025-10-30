@@ -1,16 +1,14 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '../db/schema/index.js';
-// Simple database configuration
-const connectionString = process.env.DATABASE_URL;
+// Use DATABASE_PUBLIC_URL for Railway
+const connectionString = process.env.DATABASE_PUBLIC_URL;
+console.log('🔗 Database PUBLIC URL exists:', !!connectionString);
 if (!connectionString) {
-    console.error('❌ DATABASE_URL is missing');
-    // Don't throw error, just log so we can debug
+    console.error('❌ DATABASE_PUBLIC_URL is missing');
 }
-console.log('🔗 Database config loaded');
 const pool = new Pool({
     connectionString: connectionString,
-    ssl: connectionString?.includes('railway') ? { rejectUnauthorized: false } : false
 });
 export const db = drizzle(pool, { schema });
 export default pool;
