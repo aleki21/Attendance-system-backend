@@ -25,7 +25,11 @@ const PORT = process.env.PORT || 4000;
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://repentanceattendance-system-fronten.vercel.app/',
+    // Your specific Vercel domains
+    'https://repentanceattendance-system-frontend-1vljabg5k.vercel.app',
+    'https://repentanceattendance-system-fronten.vercel.app',
+    // Wildcard patterns for any future deployments
+    'https://repentanceattendance-system-frontend-*.vercel.app',
     'https://*.vercel.app'
 ];
 const corsOptions = {
@@ -34,7 +38,7 @@ const corsOptions = {
             return callback(null, true);
         if (allowedOrigins.some(allowedOrigin => {
             if (allowedOrigin.includes('*')) {
-                const domainPattern = new RegExp(allowedOrigin.replace('*', '.*'));
+                const domainPattern = new RegExp('^' + allowedOrigin.replace(/\*/g, '.*') + '$');
                 return domainPattern.test(origin);
             }
             return allowedOrigin === origin;
@@ -47,7 +51,7 @@ const corsOptions = {
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Don't forget PATCH!
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));

@@ -38,7 +38,7 @@ const createMemberSchema = z.object({
 // =========================
 router.get("/", async (req, res) => {
   try {
-    const { search, ageGroup, gender, page = 1, limit = 50 } = req.query;
+    const { search, ageGroup, gender, page = 1, limit = 1000 } = req.query;
 
     // Build query with all conditions at once
     const membersList = await db
