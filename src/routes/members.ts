@@ -1,35 +1,26 @@
 import { Router } from "express";
 import { db } from "../config/db.js";
 import { members } from "../db/schema/index.js";
-import { eq, and, like, count, sql } from "drizzle-orm";
+import { eq, and, like, count } from "drizzle-orm";
 import { z } from "zod";
 
 const router = Router();
 
-// Validation schemas - REMOVED idNo completely
+// Validation schemas - Phone is completely optional for ALL age groups
 const createMemberSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Name is required").trim(),
   ageGroup: z.enum(["child", "youth", "adult"]),
   gender: z.enum(["male", "female"]),
-  residence: z.string().min(1, "Residence is required"),
+  residence: z.string().min(1, "Residence is required").trim(),
   phone: z.string().optional().nullable(),
 }).refine((data) => {
-  // Youth and Adult require Phone only
-  if (data.ageGroup === "youth" || data.ageGroup === "adult") {
-    return !!data.phone;
+  // Kenyan phone validation (254XXXXXXXXX) - only validate if phone is provided and not empty
+  if (data.phone && data.phone.trim() !== "") {
+    return /^254\d{9}$/.test(data.phone.trim());
   }
   return true;
 }, {
-  message: "Phone number is required for Youth and Adult members",
-  path: ["phone"]
-}).refine((data) => {
-  // Kenyan phone validation (254XXXXXXXXX) - only for youth and adults
-  if (data.phone && (data.ageGroup === "youth" || data.ageGroup === "adult")) {
-    return /^254\d{9}$/.test(data.phone);
-  }
-  return true;
-}, {
-  message: "Phone must be in format 254XXXXXXXXX for Youth and Adult members",
+  message: "Phone must be in format 254XXXXXXXXX (12 digits starting with 254)",
   path: ["phone"]
 });
 
@@ -121,9 +112,12 @@ router.get("/stats", async (req, res) => {
 // =========================
 router.post("/", async (req, res) => {
   try {
+    console.log("📥 Received create member request:", req.body);
+    
     const validationResult = createMemberSchema.safeParse(req.body);
     
     if (!validationResult.success) {
+      console.log("❌ Validation failed:", validationResult.error.issues);
       return res.status(400).json({ 
         message: "Validation failed", 
         errors: validationResult.error.issues
@@ -131,30 +125,25 @@ router.post("/", async (req, res) => {
     }
 
     const { name, ageGroup, gender, residence, phone } = validationResult.data;
+    
+    console.log("✅ Validated data:", { name, ageGroup, gender, residence, phone });
 
-    // Check for duplicate phone (if provided and for youth/adult)
-    if (phone && (ageGroup === "youth" || ageGroup === "adult")) {
-      const existingWithPhone = await db
-        .select()
-        .from(members)
-        .where(eq(members.phone, phone));
-      
-      if (existingWithPhone.length > 0) {
-        return res.status(400).json({ message: "Phone number already exists" });
-      }
-    }
+    // REMOVED: Phone uniqueness check for ALL age groups
+    // Phone numbers can be shared by anyone now
 
-    // Insert member - NO ID NUMBER
+    // Insert member
     const [newMember] = await db
       .insert(members)
       .values({
-        name,
+        name: name.trim(),
         ageGroup,
         gender,
-        residence,
-        phone: phone || null,
+        residence: residence.trim(),
+        phone: phone && phone.trim() !== "" ? phone.trim() : null,
       })
       .returning();
+
+    console.log("✅ Member created successfully:", newMember);
 
     res.status(201).json({
       message: "✅ Member registered successfully",
@@ -162,7 +151,10 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Create member error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 });
 
@@ -172,9 +164,12 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const memberId = parseInt(req.params.id);
+    console.log("📥 Received update request for ID:", memberId, "Data:", req.body);
+    
     const validationResult = createMemberSchema.safeParse(req.body);
 
     if (!validationResult.success) {
+      console.log("❌ Validation failed:", validationResult.error.issues);
       return res.status(400).json({ 
         message: "Validation failed", 
         errors: validationResult.error.issues
@@ -193,33 +188,23 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Member not found" });
     }
 
-    // Check for duplicate phone (excluding current member)
-    if (phone && (ageGroup === "youth" || ageGroup === "adult")) {
-      const existingWithPhone = await db
-        .select()
-        .from(members)
-        .where(and(
-          eq(members.phone, phone),
-          sql`${members.memberId} != ${memberId}`
-        ));
-      
-      if (existingWithPhone.length > 0) {
-        return res.status(400).json({ message: "Phone number already exists" });
-      }
-    }
+    // REMOVED: Phone uniqueness check for ALL age groups
+    // Phone numbers can be shared by anyone now
 
-    // Update member - NO ID NUMBER
+    // Update member
     const [updatedMember] = await db
       .update(members)
       .set({
-        name,
+        name: name.trim(),
         ageGroup,
         gender,
-        residence,
-        phone: phone || null,
+        residence: residence.trim(),
+        phone: phone && phone.trim() !== "" ? phone.trim() : null,
       })
       .where(eq(members.memberId, memberId))
       .returning();
+
+    console.log("✅ Member updated successfully:", updatedMember);
 
     res.json({
       message: "✅ Member updated successfully",
@@ -227,7 +212,10 @@ router.put("/:id", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Update member error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 });
 

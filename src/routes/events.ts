@@ -75,9 +75,6 @@ router.get("/today", async (req, res) => {
     const kenyaTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
     const today = kenyaTime.toISOString().split('T')[0];
     
-    console.log(`🇰🇪 Today in Kenya: ${today}`);
-    console.log(`🕒 Current UTC time: ${now.toISOString()}`);
-    
     const todayEvents = await db
       .select()
       .from(events)
